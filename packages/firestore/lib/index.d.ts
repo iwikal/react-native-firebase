@@ -285,7 +285,7 @@ export namespace Firestore {
      *
      * @param observer A single object containing `next` and `error` callbacks.
      */
-    onSnapshot(observer: FirestoreObserver): Function;
+    onSnapshot(observer: DocumentReference.Observer): () => void;
 
     /**
      * Attaches a listener for DocumentSnapshot events with snapshot listener options.
@@ -311,7 +311,7 @@ export namespace Firestore {
      * @param options Options controlling the listen behavior.
      * @param observer A single object containing `next` and `error` callbacks.
      */
-    onSnapshot(options: SnapshotListenOptions, observer: FirestoreObserver): Function;
+    onSnapshot(options: SnapshotListenOptions, observer: DocumentReference.Observer): () => void;
 
     /**
      * Attaches a listener for DocumentSnapshot events.
@@ -335,7 +335,11 @@ export namespace Firestore {
      * @param onError A callback to be called if the listen fails or is cancelled. No further callbacks will occur.
      * @param onCompletion An optional function which will never be called.
      */
-    onSnapshot(onNext: Function, onError?: Function, onCompletion?: Function): Function;
+    onSnapshot(
+      onNext: DocumentReference.ObserverOnNext,
+      onError?: DocumentReference.ObserverOnError,
+      onCompletion?: DocumentReference.ObserverOnComplete,
+    ): () => void;
 
     /**
      * Attaches a listener for DocumentSnapshot events with snapshot listener options.
@@ -363,10 +367,10 @@ export namespace Firestore {
      */
     onSnapshot(
       options: SnapshotListenOptions,
-      onNext: Function,
-      onError?: Function,
-      onCompletion?: Function,
-    ): Function;
+      onNext: DocumentReference.ObserverOnNext,
+      onError?: DocumentReference.ObserverOnError,
+      onCompletion?: DocumentReference.ObserverOnComplete,
+    ): () => void;
 
     /**
      * Writes to the document referred to by this DocumentReference. If the document does not yet
@@ -428,6 +432,18 @@ export namespace Firestore {
      * @param moreFieldsAndValues Additional key value pairs.
      */
     update(field: string | FieldPath, value: any, ...moreFieldsAndValues: any[]): Promise<void>;
+  }
+
+  namespace DocumentReference {
+    type ObserverOnNext = (documentSnapshot: DocumentSnapshot) => void;
+    type ObserverOnError = (err: Query.SnapshotError) => void;
+    type ObserverOnComplete = () => void;
+
+    interface Observer {
+      next: ObserverOnNext;
+      error?: ObserverOnError;
+      complete?: ObserverOnComplete;
+    }
   }
 
   /**
@@ -761,12 +777,6 @@ export namespace Firestore {
     source: 'default' | 'server' | 'cache';
   }
 
-  export interface FirestoreObserver {
-    complete?: Function;
-    error?: Function;
-    next?: Function;
-  }
-
   /**
    * A Query refers to a `Query` which you can read or listen to. You can also construct refined `Query` objects by
    * adding filters and ordering.
@@ -937,7 +947,7 @@ export namespace Firestore {
      *
      * @param observer A single object containing `next` and `error` callbacks.
      */
-    onSnapshot(observer: FirestoreObserver): Function;
+    onSnapshot(observer: Query.Observer): () => void;
 
     /**
      * Attaches a listener for `QuerySnapshot` events with snapshot listener options.
@@ -963,7 +973,7 @@ export namespace Firestore {
      * @param options Options controlling the listen behavior.
      * @param observer A single object containing `next` and `error` callbacks.
      */
-    onSnapshot(options: SnapshotListenOptions, observer: FirestoreObserver): Function;
+    onSnapshot(options: SnapshotListenOptions, observer: Query.Observer): () => void;
 
     /**
      * Attaches a listener for `QuerySnapshot` events.
@@ -987,7 +997,11 @@ export namespace Firestore {
      * @param onError A callback to be called if the listen fails or is cancelled. No further callbacks will occur.
      * @param onCompletion An optional function which will never be called.
      */
-    onSnapshot(onNext: Function, onError?: Function, onCompletion?: Function): Function;
+    onSnapshot(
+      onNext: Query.ObserverOnNext,
+      onError?: Query.ObserverOnError,
+      onCompletion?: Query.ObserverOnComplete,
+    ): () => void;
 
     /**
      * Attaches a listener for `QuerySnapshot` events with snapshot listener options.
@@ -1015,10 +1029,10 @@ export namespace Firestore {
      */
     onSnapshot(
       options: SnapshotListenOptions,
-      onNext: Function,
-      onError?: Function,
-      onCompletion?: Function,
-    ): Function;
+      onNext: Query.ObserverOnNext,
+      onError?: Query.ObserverOnError,
+      onCompletion?: Query.ObserverOnComplete,
+    ): () => void;
 
     /**
      * Creates and returns a new Query that's additionally sorted by the specified field, optionally in descending order instead of ascending.
@@ -1147,6 +1161,30 @@ export namespace Firestore {
     where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: any): Query;
   }
 
+  namespace Query {
+    interface NativeError extends Error {
+      code: string;
+      message: string;
+      nativeErrorCode?: string;
+      nativeErrorMessage?: string;
+    }
+
+    interface SnapshotError extends NativeError {
+      path: string;
+      appName: string;
+    }
+
+    type ObserverOnNext = (querySnapshot: QuerySnapshot) => void;
+    type ObserverOnError = (err: SnapshotError) => void;
+    type ObserverOnComplete = () => void;
+
+    interface Observer {
+      next: ObserverOnNext;
+      error?: ObserverOnError;
+      complete?: ObserverOnComplete;
+    }
+  }
+
   /**
    * Filter conditions in a `Query.where()` clause are specified using the strings '<', '<=', '==', '>=', '>', and 'array-contains'.
    */
@@ -1229,7 +1267,7 @@ export namespace Firestore {
      * @param callback A callback to be called with a `DocumentSnapshot` for each document in the snapshot.
      * @param thisArg The `this` binding for the callback.
      */
-    forEach(callback: Function, thisArg?: any): void;
+    forEach(callback: (snapshot: DocumentSnapshot) => any, thisArg?: any): void;
 
     /**
      * Returns true if this `QuerySnapshot` is equal to the provided one.
