@@ -121,7 +121,7 @@ export namespace Firestore {
      *
      * @param data An Object containing the data for the new document.
      */
-    add(data: { [key]: value }): Promise<DocumentReference>;
+    add(data: { [key: string]: any }): Promise<DocumentReference>;
 
     /**
      * Get a DocumentReference for the document within the collection at the specified path. If no
@@ -445,7 +445,7 @@ export namespace Firestore {
      * @param data A map of the fields and values for the document.
      * @param options An object to configure the set behavior.
      */
-    set(data: { [key]: value }, options?: SetOptions): Promise<void>;
+    set(data: { [key: string]: any }, options?: SetOptions): Promise<void>;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`. The update will fail
@@ -464,7 +464,7 @@ export namespace Firestore {
      *
      * @param data An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document.
      */
-    update(data: { [key]: value }): Promise<void>;
+    update(data: { [key: string]: any }): Promise<void>;
 
     /**
      * Updates fields in the document referred to by this DocumentReference. The update will fail if
@@ -537,7 +537,7 @@ export namespace Firestore {
      * console.log('User', user.data());
      * ```
      */
-    data(): { [key]: value } | undefined;
+    data(): { [key: string]: any } | undefined;
 
     /**
      * Retrieves the field specified by fieldPath. Returns undefined if the document or field doesn't exist.
@@ -578,7 +578,7 @@ export namespace Firestore {
    */
   export interface ExistingDocumentSnapshot extends BaseDocumentSnapshot {
     exists: true;
-    data(): { [key]: value };
+    data(): { [key: string]: any };
     get(fieldPath: string | FieldPath): any;
   }
 
@@ -1613,7 +1613,11 @@ export namespace Firestore {
      * @param data An object of the fields and values for the document.
      * @param options An object to configure the set behavior.
      */
-    set(documentRef: DocumentReference, data: { [key]: value }, options?: SetOptions): Transaction;
+    set(
+      documentRef: DocumentReference,
+      data: { [key: string]: any },
+      options?: SetOptions,
+    ): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided `DocumentReference`. The update will fail if applied
@@ -1636,7 +1640,7 @@ export namespace Firestore {
      * @param documentRef A reference to the document to be updated.
      * @param data An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document.
      */
-    update(documentRef: DocumentReference, data: { [key]: value }): Transaction;
+    update(documentRef: DocumentReference, data: { [key: string]: any }): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided DocumentReference. The update will fail if applied to
@@ -1735,7 +1739,11 @@ export namespace Firestore {
      * @param data An object of the fields and values for the document.
      * @param options An object to configure the set behavior.
      */
-    set(documentRef: DocumentReference, data: { [key]: value }, options?: SetOptions): WriteBatch;
+    set(
+      documentRef: DocumentReference,
+      data: { [key: string]: any },
+      options?: SetOptions,
+    ): WriteBatch;
 
     /**
      * Updates fields in the document referred to by the provided DocumentReference. The update will fail if applied to a document that does not exist.
@@ -1754,7 +1762,7 @@ export namespace Firestore {
      * @param documentRef A reference to the document to be updated.
      * @param data An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document.
      */
-    update(documentRef: DocumentReference, data: { [key]: value }): WriteBatch;
+    update(documentRef: DocumentReference, data: { [key: string]: any }): WriteBatch;
 
     /**
      * Updates fields in the document referred to by this DocumentReference. The update will fail if applied to a document that does not exist.
