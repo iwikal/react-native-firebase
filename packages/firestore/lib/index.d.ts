@@ -141,15 +141,61 @@ export namespace Firestore {
     doc(documentPath?: string): DocumentReference;
   }
 
-  /**
-   * A DocumentChange represents a change to the documents matching a query. It contains the document affected and the
-   * type of change that occurred.
-   */
-  export interface DocumentChange {
+  export interface AddedDocumentChange {
     /**
      * The document affected by this change.
      */
-    doc: DocumentSnapshot;
+    doc: ExistingDocumentSnapshot;
+
+    /**
+     * The index of the changed document in the result set immediately after this `DocumentChange`
+     * (i.e. supposing that all prior `DocumentChange` objects and the current `DocumentChange` object have been applied).
+     * Is -1 for 'removed' events.
+     */
+    newIndex: number;
+
+    /**
+     * The index of the changed document in the result set immediately prior to this `DocumentChange` (i.e.
+     * supposing that all prior `DocumentChange` objects have been applied). Is -1 for 'added' events.
+     */
+    oldIndex: -1;
+
+    /**
+     * The type of change ('added', 'modified', or 'removed').
+     */
+    type: 'added';
+  }
+
+  export interface RemovedDocumentChange {
+    /**
+     * The document affected by this change.
+     */
+    doc: NonexistingDocumentSnapshot;
+
+    /**
+     * The index of the changed document in the result set immediately after this `DocumentChange`
+     * (i.e. supposing that all prior `DocumentChange` objects and the current `DocumentChange` object have been applied).
+     * Is -1 for 'removed' events.
+     */
+    newIndex: -1;
+
+    /**
+     * The index of the changed document in the result set immediately prior to this `DocumentChange` (i.e.
+     * supposing that all prior `DocumentChange` objects have been applied). Is -1 for 'added' events.
+     */
+    oldIndex: number;
+
+    /**
+     * The type of change ('added', 'modified', or 'removed').
+     */
+    type: 'removed';
+  }
+
+  export interface ModifiedDocumentChange {
+    /**
+     * The document affected by this change.
+     */
+    doc: ExistingDocumentSnapshot;
 
     /**
      * The index of the changed document in the result set immediately after this `DocumentChange`
@@ -167,8 +213,14 @@ export namespace Firestore {
     /**
      * The type of change ('added', 'modified', or 'removed').
      */
-    type: DocumentChangeType;
+    type: 'modified';
   }
+
+  /**
+   * A DocumentChange represents a change to the documents matching a query. It contains the document affected and the
+   * type of change that occurred.
+   */
+  export type DocumentChange = AddedDocumentChange | RemovedDocumentChange | ModifiedDocumentChange;
 
   /**
    * The type of a DocumentChange may be 'added', 'removed', or 'modified'.
@@ -453,7 +505,7 @@ export namespace Firestore {
    * For a DocumentSnapshot that points to a non-existing document, any data access will return 'undefined'.
    * You can use the `exists` property to explicitly verify a document's existence.
    */
-  export interface DocumentSnapshot {
+  interface BaseDocumentSnapshot {
     /**
      * Property of the `DocumentSnapshot` that signals whether or not the data exists. True if the document exists.
      */
@@ -520,6 +572,16 @@ export namespace Firestore {
     isEqual(other: DocumentSnapshot): boolean;
   }
 
+  /*
+   * Represents a snapshot of a document that exists. It is safe to access
+   * data without checking if the return value is undefined.
+   */
+  export interface ExistingDocumentSnapshot extends BaseDocumentSnapshot {
+    exists: true;
+    data(): { [key]: value };
+    get(fieldPath: string | FieldPath): any;
+  }
+
   /**
    * A `QueryDocumentSnapshot` contains data read from a document in your
    * Firestore database as part of a query. The document is guaranteed to exist
@@ -531,26 +593,19 @@ export namespace Firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export interface QueryDocumentSnapshot extends DocumentSnapshot {
-    /**
-     * Since query results contain only existing documents, the `exists`
-     * property will always be true.
-     */
-    exists: true;
+  export type QueryDocumentSnapshot = ExistingDocumentSnapshot;
 
-    /**
-     * Retrieves all fields in the document as an Object.
-     *
-     * #### Example
-     *
-     * ```js
-     * const user = await firebase.firestore().doc('users/alovelace').get();
-     *
-     * console.log('User', user.data());
-     * ```
-     */
-    data(): { [key]: value };
+  /*
+   * Represents a snapshot of a document that does not exist. Any attempt to
+   * retreive data will result in undefined.
+   */
+  export interface NonexistingDocumentSnapshot extends BaseDocumentSnapshot {
+    exists: false;
+    data(): undefined;
+    get(): undefined;
   }
+
+  export type DocumentSnapshot = ExistingDocumentSnapshot | NonexistingDocumentSnapshot;
 
   /**
    * A FieldPath refers to a field in a document. The path may consist of a single field name (referring to a
