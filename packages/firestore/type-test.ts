@@ -30,3 +30,27 @@ console.log(firebase.firestore(firebase.app()).app.name);
 
 // checks default export supports app arg
 console.log(defaultExport(firebase.app()).app.name);
+
+firebase.firestore().doc('foo/bar').get().then(snap => {
+  if (snap.exists) {
+    // existing document data is an object
+    console.log(snap.data().baz);
+  } else {
+    // nonexistent document data is undefined
+    const data: undefined = snap.data();
+    console.log(data);
+  }
+});
+
+firebase.firestore().collection('foo').get().then(collectionSnap => {
+  for (const change of collectionSnap.docChanges()) {
+    if (change.type === 'removed') {
+      // removed documents don't exist
+      const data: undefined = change.doc.data();
+      console.log(data);
+    } else {
+      // added and modified documents exist
+      console.log(change.doc.data().baz);
+    }
+  }
+});
